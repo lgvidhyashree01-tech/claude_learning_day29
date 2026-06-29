@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operation Lifeline: Supply Chain Crisis Lab</title>
+    <!-- React & ReactDOM via CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for in-browser JSX transpilation -->
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --primary: #38bdf8;
+            --primary-hover: #0284c7;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1, h2, h3, h4 {
+            color: var(--text-main);
+            margin-bottom: 1rem;
+        }
+
+        p {
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        /* Typography */
+        .text-center { text-align: center; }
+        .text-primary { color: var(--primary); }
+        .text-success { color: var(--success); }
+        .text-danger { color: var(--danger); }
+        .text-warning { color: var(--warning); }
+        .text-sm { font-size: 0.875rem; }
+        .font-bold { font-weight: bold; }
+
+        /* Layout */
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+        
+        .flex { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .flex-col { flex-direction: column; }
+        .justify-between { justify-content: space-between; }
+        .items-center { align-items: center; }
+        .mt-4 { margin-top: 1rem; }
+        .mt-8 { margin-top: 2rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .p-4 { padding: 1rem; }
+
+        /* Components */
+        .card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .card.selected {
+            border-color: var(--primary);
+            background-color: rgba(56, 189, 248, 0.05);
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover { background-color: var(--primary-hover); }
+        .btn:disabled { background-color: var(--surface-hover); color: var(--text-muted); cursor: not-allowed; }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--border);
+            color: var(--text-main);
+        }
+        .btn-outline:hover:not(:disabled) { border-color: var(--primary); }
+        .btn-outline.active { border-color: var(--primary); color: var(--primary); }
+
+        /* Progress Bars */
+        .progress-wrapper { margin-bottom: 1rem; }
+        .progress-labels { display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem; font-weight: 600;}
+        .progress-bg {
+            background-color: var(--surface-hover);
+            border-radius: 999px;
+            height: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s;
+        }
+
+        /* Explainer Block */
+        .explainer {
+            background-color: rgba(56, 189, 248, 0.1);
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 2rem;
+        }
+        .explainer strong { color: var(--primary); }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.4s ease forwards; }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .badge-danger { background-color: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+        .badge-warning { background-color: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+        .badge-info { background-color: rgba(56, 189, 248, 0.2); color: #bae6fd; }
+
+        /* Dashboard specific */
+        .score-circle {
+            width: 150px; height: 150px;
+            border-radius: 50%;
+            border: 8px solid var(--surface-hover);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; font-weight: bold;
+            margin: 0 auto 1.5rem auto;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- DATA DICTIONARIES ---
+        const COMPANIES = [
+            { name: "AeroTech Dynamics", industry: "Aerospace", revenue: "$4.2B", factories: 3, suppliers: 120, inventoryDays: 14, leadTime: "90 days", country: "Germany" },
+            { name: "NovaLife Pharma", industry: "Pharmaceuticals", revenue: "$1.8B", factories: 5, suppliers: 45, inventoryDays: 30, leadTime: "45 days", country: "Switzerland" },
+            { name: "Vanguard Auto", industry: "Automotive", revenue: "$12B", factories: 8, suppliers: 400, inventoryDays: 5, leadTime: "60 days", country: "Japan" },
+            { name: "FreshBite Foods", industry: "FMCG", revenue: "$800M", factories: 12, suppliers: 60, inventoryDays: 7, leadTime: "10 days", country: "USA" },
+            { name: "ThreadCore", industry: "Apparel", revenue: "$2.1B", factories: 4, suppliers: 85, inventoryDays: 45, leadTime: "120 days", country: "Vietnam" }
+        ];
+
+        const CRISES = [
+            { type: "Global Port Strike", urgency: "Critical", impact: "High", desc: "A major labor dispute has shut down key transit ports. 40% of your inbound raw materials are stuck on the water." },
+            { type: "Supplier Bankruptcy", urgency: "High", impact: "Severe", desc: "Your Tier 1 supplier for a critical component just filed for bankruptcy without warning. Production stops in 48 hours." },
+            { type: "Cyber Extortion Attack", urgency: "Critical", impact: "Catastrophic", desc: "Ransomware has locked your warehouse management systems. No trucks can be loaded or unloaded until systems are restored." },
+            { type: "Geopolitical Trade Embargo", urgency: "Medium", impact: "High", desc: "New tariffs and trade restrictions mean you can no longer legally export from your cheapest manufacturing region." },
+            { type: "Catastrophic Flood", urgency: "High", impact: "Medium", desc: "Historic flooding has destroyed the primary distribution center servicing your largest market." }
+        ];
+
+        const WAR_ROOM_ACTIONS = [
+            { id: 1, title: "Expedite Air Freight", desc: "Fly critical parts in. Bypasses port delays but burns cash.", impact: { cost: -20, delivery: +25, inventory: +5 } },
+            { id: 2, title: "Pivot to Spot Market", desc: "Buy materials at market premium from local brokers.", impact: { cost: -15, inventory: +15, profit: -10 } },
+            { id: 3, title: "Ration Allocations", desc: "Protect VIP clients, delay shipments to smaller buyers.", impact: { csat: -20, inventory: +10, profit: +5 } },
+            { id: 4, title: "Halt Production", desc: "Stop lines to save operating costs while waiting it out.", impact: { cost: +15, delivery: -25, profit: -15 } },
+            { id: 5, title: "Redesign Product", desc: "Quickly alter the bill of materials to use available parts.", impact: { delivery: -10, cost: -10, csat: +10 } },
+            { id: 6, title: "Overtime Push", desc: "Run triple shifts at unaffected facilities to compensate.", impact: { cost: -15, delivery: +15, csat: +5 } }
+        ];
+
+        const NEGOTIATION_ROUNDS = [
+            {
+                q: "Your primary backup supplier sees your desperation. They demand a 40% price premium for immediate production.",
+                options: [
+                    { text: "Accept the premium. We need parts now.", impacts: { trust: +5, price: -20, leadTime: +15 } },
+                    { text: "Counter-offer 15% with a 2-year volume commitment.", impacts: { trust: +15, price: -5, leadTime: +10 } },
+                    { text: "Reject and threaten to blacklist them.", impacts: { trust: -25, price: 0, leadTime: -20 } }
+                ]
+            },
+            {
+                q: "The supplier agrees to terms but states quality checks will delay shipment by 5 days.",
+                options: [
+                    { text: "Waive the quality checks to get it faster.", impacts: { trust: -10, price: 0, leadTime: +20 } },
+                    { text: "Accept the delay. Quality is paramount.", impacts: { trust: +10, price: 0, leadTime: -15 } },
+                    { text: "Send our own engineers to their plant to speed it up.", impacts: { trust: -5, price: -10, leadTime: +10 } }
+                ]
+            },
+            {
+                q: "A logistics broker offers to guarantee transit times, but requires payment in full upfront.",
+                options: [
+                    { text: "Pay upfront to secure the route.", impacts: { trust: +5, price: -15, leadTime: +10 } },
+                    { text: "Negotiate 50% now, 50% on delivery.", impacts: { trust: +10, price: -5, leadTime: +5 } },
+                    { text: "Decline and rely on standard freight.", impacts: { trust: 0, price: +10, leadTime: -15 } }
+                ]
+            },
+            {
+                q: "The crisis stabilizes slightly. The supplier asks if you want to lock in current rates or return to variable pricing.",
+                options: [
+                    { text: "Lock in current rates (stability).", impacts: { trust: +15, price: -10, leadTime: +5 } },
+                    { text: "Return to variable market pricing.", impacts: { trust: 0, price: +15, leadTime: -5 } },
+                    { text: "Demand a post-crisis discount for loyalty.", impacts: { trust: -15, price: +20, leadTime: 0 } }
+                ]
+            }
+        ];
+
+        const BOARDROOM_QUESTIONS = [
+            {
+                q: "Going forward, how should we balance our inventory strategy?",
+                options: [
+                    { text: "Strict Just-In-Time (JIT) to minimize holding costs.", score: 0, reason: "Too fragile. JIT fails during severe volatility." },
+                    { text: "Massive stockpiling (Just-In-Case) of everything.", score: 1, reason: "Too expensive. Ties up working capital." },
+                    { text: "Strategic buffering for critical components only.", score: 3, reason: "Correct. A hybrid approach balances cost and resilience." }
+                ]
+            },
+            {
+                q: "How should we handle supplier geographic concentration?",
+                options: [
+                    { text: "Consolidate to a single low-cost region to maximize margins.", score: 0, reason: "Creates a single point of failure." },
+                    { text: "Nearshore production closer to our consumer markets.", score: 2, reason: "Good, reduces transit risk, but can increase base costs." },
+                    { text: "China-Plus-One strategy across multiple hemispheres.", score: 3, reason: "Excellent. Diversifies geopolitical and climatic risks." }
+                ]
+            },
+            {
+                q: "When a disruption hits, how should we communicate with customers?",
+                options: [
+                    { text: "Delay notification until we have a guaranteed fix.", score: 0, reason: "Destroys trust when they find out late." },
+                    { text: "Immediate, transparent updates on delays and root causes.", score: 3, reason: "Honesty preserves customer relationships long-term." },
+                    { text: "Blame the supplier to protect our brand image.", score: 0, reason: "Unprofessional and damages industry partnerships." }
+                ]
+            }
+        ];
+
+        const AI_INVESTMENTS = [
+            { id: 1, name: "Demand Sensing AI", desc: "Uses real-time market data to predict spikes/drops in consumer demand.", stat: "Improves Inventory by +15%" },
+            { id: 2, name: "Digital Twin Simulation", desc: "Creates a virtual replica of your supply chain to test crisis scenarios.", stat: "Improves Cost & Profit by +10%" },
+            { id: 3, name: "Supplier Risk Monitoring", desc: "Scrapes news and financial data to predict tier-2 supplier bankruptcies.", stat: "Improves Delivery by +15%" },
+            { id: 4, name: "Autonomous Procurement", desc: "AI bots that auto-negotiate spot freight rates.", stat: "Improves Profit by +15%" },
+            { id: 5, name: "Computer Vision Warehousing", desc: "Automates inventory counting and QA via drone cameras.", stat: "Improves CSAT by +15%" }
+        ];
+
+        // --- HELPER COMPONENTS ---
+        const ProgressBar = ({ label, value, colorType }) => {
+            let color = "var(--success)";
+            if (value < 40) color = "var(--danger)";
+            else if (value < 70) color = "var(--warning)";
+            if (colorType === 'reverse') {
+                color = value > 70 ? "var(--danger)" : value > 40 ? "var(--warning)" : "var(--success)";
+            }
+
+            return (
+                <div className="progress-wrapper">
+                    <div className="progress-labels">
+                        <span>{label}</span>
+                        <span>{Math.round(value)}/100</span>
+                    </div>
+                    <div className="progress-bg">
+                        <div className="progress-fill" style={{ width: `${value}%`, backgroundColor: color }}></div>
+                    </div>
+                </div>
+            );
+        };
+
+        const MetricDashboard = ({ metrics }) => (
+            <div className="card fade-in" style={{ position: 'sticky', top: '1rem' }}>
+                <h3>Corporate Vitals</h3>
+                <ProgressBar label="Operating Cost (Higher is Better/Cheaper)" value={metrics.cost} />
+                <ProgressBar label="Inventory Levels" value={metrics.inventory} />
+                <ProgressBar label="Profit Margin" value={metrics.profit} />
+                <ProgressBar label="Delivery Speed" value={metrics.delivery} />
+                <ProgressBar label="Customer Sat (CSAT)" value={metrics.csat} />
+            </div>
+        );
+
+        // --- MAIN APP COMPONENT ---
+        const App = () => {
+            const [stage, setStage] = useState(0);
+            
+            // Game State
+            const [company, setCompany] = useState(null);
+            const [crisis, setCrisis] = useState(null);
+            const [metrics, setMetrics] = useState({ cost: 70, inventory: 60, profit: 80, delivery: 75, csat: 85 });
+            const [negoMetrics, setNegoMetrics] = useState({ trust: 50, price: 50, leadTime: 50 });
+            const [boardScore, setBoardScore] = useState(0);
+            
+            // Step specific state
+            const [selectedActions, setSelectedActions] = useState([]);
+            const [negoRound, setNegoRound] = useState(0);
+            const [boardRound, setBoardRound] = useState(0);
+            const [selectedAI, setSelectedAI] = useState([]);
+
+            const clamp = (val) => Math.max(0, Math.min(100, val));
+            const updateMetrics = (impacts) => {
+                setMetrics(prev => ({
+                    cost: clamp(prev.cost + (impacts.cost || 0)),
+                    inventory: clamp(prev.inventory + (impacts.inventory || 0)),
+                    profit: clamp(prev.profit + (impacts.profit || 0)),
+                    delivery: clamp(prev.delivery + (impacts.delivery || 0)),
+                    csat: clamp(prev.csat + (impacts.csat || 0))
+                }));
+            };
+
+            const startGame = () => {
+                setCompany(COMPANIES[Math.floor(Math.random() * COMPANIES.length)]);
+                setCrisis(CRISES[Math.floor(Math.random() * CRISES.length)]);
+                setMetrics({ cost: 70, inventory: 60, profit: 80, delivery: 75, csat: 85 });
+                setNegoMetrics({ trust: 50, price: 50, leadTime: 50 });
+                setBoardScore(0);
+                setSelectedActions([]);
+                setNegoRound(0);
+                setBoardRound(0);
+                setSelectedAI([]);
+                setStage(1);
+            };
+
+            // Stage 0: Welcome
+            if (stage === 0) {
+                return (
+                    <div className="container fade-in text-center" style={{ marginTop: '10vh' }}>
+                        <h1 style={{ fontSize: '3rem', color: 'var(--primary)' }}>Operation Lifeline</h1>
+                        <h2 style={{ color: 'var(--text-muted)' }}>Supply Chain Crisis Lab</h2>
+                        <div className="card mt-8" style={{ maxWidth: '600px', margin: '2rem auto' }}>
+                            <p>Modern supply chains are complex webs spanning the globe. When they break, the consequences are immediate and severe.</p>
+                            <p>In this simulation, you will step into the shoes of a Chief Supply Chain Officer (CSCO). You'll face a randomized company profile and a catastrophic disruption.</p>
+                            <p>Your job is to balance cost, speed, and customer satisfaction through tactical war-room decisions, brutal supplier negotiations, and long-term strategic investments.</p>
+                            <button className="btn mt-4" style={{ fontSize: '1.2rem', padding: '1rem 2rem' }} onClick={startGame}>Start Simulation</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Stage 1: Briefing
+            if (stage === 1) {
+                return (
+                    <div className="container fade-in">
+                        <div className="header">
+                            <h1>Executive Briefing</h1>
+                            <p>Understand your operational baseline and the impending threat.</p>
+                        </div>
+                        
+                        <div className="explainer">
+                            <strong>Why this matters:</strong> You cannot fix a supply chain without understanding its constraints. A company with 5 days of inventory (Just-In-Time) will react very differently to a crisis than one with 45 days of buffer stock.
+                        </div>
+
+                        <div className="grid grid-2">
+                            <div className="card">
+                                <h3>Company Profile: <span className="text-primary">{company.name}</span></h3>
+                                <p><strong>Industry:</strong> {company.industry}</p>
+                                <p><strong>Annual Revenue:</strong> {company.revenue}</p>
+                                <p><strong>Global Factories:</strong> {company.factories}</p>
+                                <p><strong>Active Suppliers:</strong> {company.suppliers}</p>
+                                <div className="mt-4 p-4" style={{ backgroundColor: 'var(--bg)', borderRadius: '8px' }}>
+                                    <p className="text-sm"><strong>Inventory Buffer:</strong> {company.inventoryDays} days</p>
+                                    <p className="text-sm"><strong>Average Lead Time:</strong> {company.leadTime}</p>
+                                    <p className="text-sm"><strong>Primary Hub:</strong> {company.country}</p>
+                                </div>
+                            </div>
+                            
+                            <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
+                                <h3 className="text-danger">Critical Incident Report</h3>
+                                <h2>{crisis.type}</h2>
+                                <div className="flex mb-4">
+                                    <span className="badge badge-danger">Urgency: {crisis.urgency}</span>
+                                    <span className="badge badge-warning">Impact: {crisis.impact}</span>
+                                </div>
+                                <p>{crisis.desc}</p>
+                                <p className="text-sm mt-4">Immediate action is required to prevent stockouts and preserve cash flow.</p>
+                            </div>
+                        </div>
+
+                        <div className="text-center mt-8">
+                            <button className="btn" onClick={() => setStage(2)}>Enter the War Room</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Stage 2: War Room
+            if (stage === 2) {
+                const toggleAction = (id) => {
+                    if (selectedActions.includes(id)) {
+                        setSelectedActions(selectedActions.filter(a => a !== id));
+                    } else if (selectedActions.length < 3) {
+                        setSelectedActions([...selectedActions, id]);
+                    }
+                };
+
+                const executeWarRoom = () => {
+                    const impacts = selectedActions.map(id => WAR_ROOM_ACTIONS.find(a => a.id === id).impact);
+                    impacts.forEach(updateMetrics);
+                    // Add intrinsic crisis penalty
+                    updateMetrics({ cost: -10, inventory: -20, profit: -10, csat: -5 });
+                    setStage(3);
+                };
+
+                return (
+                    <div className="container fade-in">
+                        <div className="header">
+                            <h1>The War Room</h1>
+                            <p>Tactical triage. Select up to 3 immediate countermeasures.</p>
+                        </div>
+
+                        <div className="explainer">
+                            <strong>Why this matters:</strong> In a crisis, you cannot fix everything at once. Spending money to expedite shipping saves customer relationships but destroys your profit margin. Doing nothing saves money now but causes stockouts later. Trade-offs are unavoidable.
+                        </div>
+
+                        <div className="grid grid-2" style={{ gridTemplateColumns: '2fr 1fr' }}>
+                            <div>
+                                <h3>Available Actions ({selectedActions.length}/3 selected)</h3>
+                                <div className="grid grid-2 mt-4">
+                                    {WAR_ROOM_ACTIONS.map(action => (
+                                        <div 
+                                            key={action.id} 
+                                            className={`card ${selectedActions.includes(action.id) ? 'selected' : ''}`}
+                                            onClick={() => toggleAction(action.id)}
+                                            style={{ cursor: 'pointer' }}
+                                        >
+                                            <h4>{action.title}</h4>
+                                            <p className="text-sm">{action.desc}</p>
+                                            <div className="flex mt-2 text-sm font-bold">
+                                                {Object.entries(action.impact).map(([key, val]) => (
+                                                    <span key={key} className={val > 0 ? 'text-success' : 'text-danger'}>
+                                                        {key}: {val > 0 ? '+' : ''}{val}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <MetricDashboard metrics={metrics} />
+                                <button 
+                                    className="btn mt-4" 
+                                    style={{ width: '100%' }}
+                                    disabled={selectedActions.length === 0}
+                                    onClick={executeWarRoom}
+                                >
+                                    Execute Directives
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Stage 3: Negotiation
+            if (stage === 3) {
+                const currentData = NEGOTIATION_ROUNDS[negoRound];
+
+                const handleNegoChoice = (impacts) => {
+                    setNegoMetrics(prev => ({
+                        trust: clamp(prev.trust + impacts.trust),
+                        price: clamp(prev.price + impacts.price),
+                        leadTime: clamp(prev.leadTime + impacts.leadTime)
+                    }));
+                    
+                    if (negoRound < NEGOTIATION_ROUNDS.length - 1) {
+                        setNegoRound(prev => prev + 1);
+                    } else {
+                        // Apply negotiation results to main metrics
+                        updateMetrics({
+                            cost: (negoMetrics.price - 50) / 2, // If price is high (good for us in this inverse scale? wait, higher price metric means better pricing for US) Let's assume price metric: 100 = cheap, 0 = expensive.
+                            delivery: (negoMetrics.leadTime - 50) / 2,
+                            csat: (negoMetrics.trust - 50) / 3
+                        });
+                        setStage(4);
+                    }
+                };
+
+                return (
+                    <div className="container fade-in">
+                        <div className="header">
+                            <h1>Supplier Negotiations</h1>
+                            <p>Round {negoRound + 1} of {NEGOTIATION_ROUNDS.length}</p>
+                        </div>
+
+                        <div className="explainer">
+                            <strong>Why this matters:</strong> Supply chains run on relationships as much as contracts. Squeezing a supplier too hard might get you cheap parts today, but they won't prioritize you during the next crisis. You must balance <strong>Supplier Trust</strong>, <strong>Pricing</strong>, and <strong>Lead Time</strong>.
+                        </div>
+
+                        <div className="grid grid-2" style={{ gridTemplateColumns: '2fr 1fr' }}>
+                            <div className="card">
+                                <h3 className="mb-4 text-warning">Incoming Message from Key Supplier...</h3>
+                                <p style={{ fontSize: '1.2rem', padding: '1rem', backgroundColor: 'var(--bg)', borderRadius: '8px' }}>"{currentData.q}"</p>
+                                
+                                <div className="flex-col mt-8" style={{ display: 'flex', gap: '1rem' }}>
+                                    {currentData.options.map((opt, i) => (
+                                        <button 
+                                            key={i} 
+                                            className="btn btn-outline" 
+                                            style={{ textAlign: 'left', padding: '1rem' }}
+                                            onClick={() => handleNegoChoice(opt.impacts)}
+                                        >
+                                            {opt.text}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            <div className="card" style={{ position: 'sticky', top: '1rem' }}>
+                                <h3>Negotiation Stance</h3>
+                                <p className="text-sm mb-4">Keep these balanced to secure a sustainable contract.</p>
+                                <ProgressBar label="Supplier Trust" value={negoMetrics.trust} />
+                                <ProgressBar label="Favorable Pricing" value={negoMetrics.price} />
+                                <ProgressBar label="Fast Lead Time" value={negoMetrics.leadTime} />
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Stage 4: Boardroom
+            if (stage === 4) {
+                const currentQ = BOARDROOM_QUESTIONS[boardRound];
+
+                const handleBoardAnswer = (score) => {
+                    setBoardScore(prev => prev + score);
+                    if (boardRound < BOARDROOM_QUESTIONS.length - 1) {
+                        setBoardRound(prev => prev + 1);
+                    } else {
+                        setStage(5);
+                    }
+                };
+
+                return (
+                    <div className="container fade-in">
+                        <div className="header">
+                            <h1>The CEO Boardroom</h1>
+                            <p>Defend your long-term strategy to the Board of Directors.</p>
+                        </div>
+
+                        <div className="explainer">
+                            <strong>Why this matters:</strong> Firefighting is only half the job. A true CSCO must synthesize the lessons learned from a crisis and implement structural changes to ensure the company is more resilient next time.
+                        </div>
+
+                        <div className="card" style={{ maxWidth: '800px', margin: '0 auto' }}>
+                            <div className="text-sm text-primary font-bold mb-2">Question {boardRound + 1} of {BOARDROOM_QUESTIONS.length}</div>
+                            <h2 className="mb-8">{currentQ.q}</h2>
+                            
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                {currentQ.options.map((opt, i) => (
+                                    <button 
+                                        key={i} 
+                                        className="btn btn-outline" 
+                                        style={{ textAlign: 'left', padding: '1.5rem', fontSize: '1.1rem' }}
+                                        onClick={() => handleBoardAnswer(opt.score)}
+                                    >
+                                        {opt.text}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Stage 5: AI Strategy
+            if (stage === 5) {
+                const toggleAI = (id) => {
+                    if (selectedAI.includes(id)) {
+                        setSelectedAI(selectedAI.filter(a => a !== id));
+                    } else if (selectedAI.length < 2) {
+                        setSelectedAI([...selectedAI, id]);
+                    }
+                };
+
+                const finalizeGame = () => {
+                    // Apply AI boosts
+                    let costB = 0, invB = 0, profB = 0, delB = 0, csatB = 0;
+                    if (selectedAI.includes(1)) invB += 15;
+                    if (selectedAI.includes(2)) { costB += 10; profB += 10; }
+                    if (selectedAI.includes(3)) delB += 15;
+                    if (selectedAI.includes(4)) profB += 15;
+                    if (selectedAI.includes(5)) csatB += 15;
+                    
+                    updateMetrics({ cost: costB, inventory: invB, profit: profB, delivery: delB, csat: csatB });
+                    setStage(6);
+                };
+
+                return (
+                    <div className="container fade-in">
+                         <div className="header">
+                            <h1>Digital Transformation</h1>
+                            <p>Select 2 AI technologies to invest your remaining budget into.</p>
+                        </div>
+
+                        <div className="explainer">
+                            <strong>Why this matters:</strong> Modern supply chains generate terabytes of data. Humans can't process it fast enough to predict disruptions. Investing in the right AI capabilities turns your supply chain from a reactive cost-center into a proactive competitive advantage.
+                        </div>
+
+                        <div className="grid grid-2">
+                            <div>
+                                <h3 className="mb-4">Select Technologies ({selectedAI.length}/2)</h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    {AI_INVESTMENTS.map(ai => (
+                                        <div 
+                                            key={ai.id} 
+                                            className={`card ${selectedAI.includes(ai.id) ? 'selected' : ''}`}
+                                            onClick={() => toggleAI(ai.id)}
+                                            style={{ cursor: 'pointer', padding: '1rem' }}
+                                        >
+                                            <div className="flex justify-between items-center">
+                                                <h4>{ai.name}</h4>
+                                                <span className="text-sm font-bold text-success">{ai.stat}</span>
+                                            </div>
+                                            <p className="text-sm mt-2 mb-0">{ai.desc}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <MetricDashboard metrics={metrics} />
+                                <button 
+                                    className="btn mt-4" 
+                                    style={{ width: '100%', padding: '1.5rem', fontSize: '1.2rem' }}
+                                    disabled={selectedAI.length < 2}
+                                    onClick={finalizeGame}
+                                >
+                                    Finalize Strategy & View Results
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Stage 6: Final Dashboard
+            if (stage === 6) {
+                // Calculate final score
+                const avgMetrics = (metrics.cost + metrics.inventory + metrics.profit + metrics.delivery + metrics.csat) / 5;
+                const finalScore = Math.round((avgMetrics * 0.6) + ((boardScore / 9) * 100 * 0.4)); // 9 is max board score (3Qs * 3pts)
+
+                // Feedback generation
+                let worstMetric = Object.keys(metrics).reduce((a, b) => metrics[a] < metrics[b] ? a : b);
+                let bestMetric = Object.keys(metrics).reduce((a, b) => metrics[a] > metrics[b] ? a : b);
+                
+                const metricNames = { cost: "Cost Control", inventory: "Inventory Management", profit: "Profitability", delivery: "On-time Delivery", csat: "Customer Satisfaction" };
+
+                let feedback = "";
+                if (finalScore >= 80) feedback = "Outstanding leadership. You navigated the crisis efficiently while positioning the company for future resilience.";
+                else if (finalScore >= 60) feedback = "Solid performance. You survived the immediate threat, though certain operational metrics took a heavy hit. Good foundation for recovery.";
+                else feedback = "Critical failure. The disruption overwhelmed your countermeasures, resulting in severe financial and reputational damage. Review your strategy.";
+
+                return (
+                    <div className="container fade-in text-center">
+                        <h1 className="mb-8">After Action Report</h1>
+                        
+                        <div className="card" style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'left' }}>
+                            <div className="grid grid-2 items-center">
+                                <div className="text-center">
+                                    <h3 className="mb-4">Overall CSCO Rating</h3>
+                                    <div className="score-circle">
+                                        {finalScore}
+                                    </div>
+                                    <p className="font-bold">{finalScore >= 80 ? 'Master Strategist' : finalScore >= 60 ? 'Competent Operator' : 'Needs Training'}</p>
+                                </div>
+                                
+                                <div>
+                                    <h3 className="mb-4">Final Metrics</h3>
+                                    <ProgressBar label="Cost Efficiency" value={metrics.cost} />
+                                    <ProgressBar label="Inventory Health" value={metrics.inventory} />
+                                    <ProgressBar label="Profit Margin" value={metrics.profit} />
+                                    <ProgressBar label="Delivery Performance" value={metrics.delivery} />
+                                    <ProgressBar label="Customer Sat" value={metrics.csat} />
+                                </div>
+                            </div>
+
+                            <hr style={{ borderColor: 'var(--border)', margin: '2rem 0' }} />
+
+                            <div className="grid grid-2">
+                                <div>
+                                    <h3 className="text-success">Greatest Strength</h3>
+                                    <p>Your handling of <strong>{metricNames[bestMetric]}</strong> was exemplary. This kept the business afloat during the darkest hours of the {crisis.type}.</p>
+                                </div>
+                                <div>
+                                    <h3 className="text-danger">Critical Vulnerability</h3>
+                                    <p>Your approach severely compromised <strong>{metricNames[worstMetric]}</strong>. In the real world, this metric dropping so low would result in executive termination or loss of market share.</p>
+                                </div>
+                            </div>
+
+                            <div className="mt-8 p-4" style={{ backgroundColor: 'var(--bg)', borderRadius: '8px', borderLeft: '4px solid var(--primary)' }}>
+                                <h3>Consultant's Evaluation</h3>
+                                <p>{feedback}</p>
+                            </div>
+
+                            <div className="text-center mt-8">
+                                <button className="btn" onClick={startGame}>Replay Simulation</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return null;
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
